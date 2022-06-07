@@ -1,0 +1,80 @@
+FROM python:3.9-slim-bullseye as build
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.9/site-packages"
+ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
+ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
+ARG WITH_CUDA=OFF
+ARG WITH_HDF5=ON
+RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
+&& if [ "${WITH_CUDA}" = "ON" ]; then echo "nvidia-cuda-toolkit" >> /tmp/pkgs-dev; fi \
+&& if [ "${WITH_CUDA}" = "ON" ]; then echo "nvidia-cuda-toolkit" >> /tmp/pkgs-run; fi \
+&& if [ "${WITH_CUDA}" = "ON" ]; then echo "nvidia-smi" >> /tmp/pkgs-run; fi \
+&& if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-dev" >> /tmp/pkgs-dev; fi \
+&& if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-103" >> /tmp/pkgs-run; fi \
+&& if [ "${WITH_HDF5}" = "ON" ]; then echo "python3-h5py" >> /tmp/pkgs-dev; fi \
+&& sed -i 's/ main/ main contrib non-free/g' /etc/apt/sources.list \
+&& apt-get update \
+&& apt-get install -y --no-install-recommends \
+    apt-utils \
+    build-essential \
+    cmake \
+    cython3 \
+    git \
+    libboost-dev libboost-serialization-dev libboost-mpi-dev libboost-filesystem-dev libboost-test-dev \
+    libfftw3-dev \
+    libpython3-dev \
+    openmpi-bin \
+    python3 \
+    python3-numpy \
+    python3-scipy \
+    python3-pip \
+    python3-setuptools \
+    python3-vtk7 \
+&& apt-get install -y --no-install-recommends $(cat /tmp/pkgs-dev) \
+&& apt-get clean \
+&& rm -rf /var/lib/apt/lists/* /tmp/pkgs-dev
+
+RUN cd /tmp \
+&& git clone --depth=1 --recursive -b jupyterlab https://github.com/jngrad/espresso.git \
+&& cd espresso \
+&& mkdir build \
+&& cd build \
+&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" cmake .. \
+  -D PYTHON_INSTDIR=${PYTHON3_SITEARCH} -D CMAKE_BUILD_TYPE=Release -D CMAKE_SKIP_RPATH=ON \
+  -D INSTALL_PYPRESSO=OFF -D WITH_CUDA="${WITH_CUDA}" -D WITH_STOKESIAN_DYNAMICS=OFF -D WITH_SCAFACOS=OFF \
+  -D WITH_CCACHE=OFF -D WITH_HDF5="${WITH_HDF5}" -D MPIEXEC_PREFLAGS='--mca;btl_vader_single_copy_mechanism;none' \
+&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) \
+&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) install \
+&& make -j $(nproc) tutorials \
+&& make python_test_data
+
+RUN cd /tmp/espresso/build \
+&& cp -r src/python/object_in_fluid ${PYTHON3_SITEARCH}/object_in_fluid \
+&& grep -F 'add_test(' testsuite/python/CTestTestfile.cmake | sed -r 's/^add_test\([^ ]+ (.+)\)$/\1/; s|[^"]+/build/testsuite/python/||g; s|[^"]+/pypresso|python|g;' > testsuite/python/suite.sh \
+&& bash -c "rm -r doc/tutorials/{,*/}{CMakeFiles,CTestTestfile.cmake,Makefile,cmake_install.cmake}" \
+&& bash -c "rm -r testsuite/python/{CMakeFiles,CTestTestfile.cmake,Makefile,cmake_install.cmake}"
+
+FROM python:3.9-slim-bullseye as main
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.9/site-packages"
+ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
+ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
+COPY --from=build /tmp/pkgs-run /tmp/pkgs-run
+COPY --from=build /tmp/espresso/samples /app/samples
+COPY --from=build /tmp/espresso/build/doc/tutorials /app/tutorials
+COPY --from=build /tmp/espresso/build/testsuite/python /app/testsuite
+COPY --from=build /tmp/espresso/testsuite/scripts/importlib_wrapper.py /app/tutorials/importlib_wrapper.py
+COPY --from=build ${PYTHON3_SITEARCH}/espressomd ${PYTHON3_SITEARCH}/espressomd
+COPY --from=build ${PYTHON3_SITEARCH}/object_in_fluid ${PYTHON3_SITEARCH}/object_in_fluid
+RUN sed -i 's/ main/ main contrib non-free/g' /etc/apt/sources.list \
+&& apt-get update \
+&& apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libboost-system1.74.0 libboost-filesystem1.74.0 libboost-mpi1.74.0 libboost-serialization1.74.0 \
+    libfftw3-bin \
+    openmpi-bin \
+    python3 \
+    python3-pip \
+&& apt-get install -y --no-install-recommends $(cat /tmp/pkgs-run) \
+&& apt autoremove -y \
+&& apt-get clean \
+&& rm -rf /var/lib/apt/lists/* /tmp/pkgs-run \
+&& sed -i '/sys.path.append/d' /app/tutorials/importlib_wrapper.py
