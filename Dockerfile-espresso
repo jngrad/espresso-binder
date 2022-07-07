@@ -34,7 +34,7 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 && rm -rf /var/lib/apt/lists/* /tmp/pkgs-dev
 
 RUN cd /tmp \
-&& git clone --depth=1 --recursive -b jupyterlab https://github.com/jngrad/espresso.git \
+&& git clone --depth=1 --recursive -b 4.2.0 https://github.com/espressomd/espresso.git \
 && cd espresso \
 && mkdir build \
 && cd build \
@@ -59,6 +59,7 @@ ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 COPY --from=build /tmp/pkgs-run /tmp/pkgs-run
 COPY --from=build /tmp/espresso/samples /app/samples
+COPY --from=build /tmp/espresso/requirements.txt /app/requirements.txt
 COPY --from=build /tmp/espresso/build/doc/tutorials /app/tutorials
 COPY --from=build /tmp/espresso/build/testsuite/python /app/testsuite
 COPY --from=build /tmp/espresso/testsuite/scripts/importlib_wrapper.py /app/tutorials/importlib_wrapper.py

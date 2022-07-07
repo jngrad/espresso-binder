@@ -26,9 +26,9 @@ Please refer to the following chapters in online user guides:
 Build the base image containing the ESPResSo shared objects:
 
 ```sh
-docker build --tag jngrad/espresso:f4d09d96 -f Dockerfile-espresso .
+docker build --tag jngrad/espresso:4.2.0 -f Dockerfile-espresso .
 docker login
-docker push jngrad/espresso:f4d09d96
+docker push jngrad/espresso:4.2.0
 docker logout
 ```
 
@@ -61,7 +61,7 @@ time bash -e suite.sh
 Test the Jupyter environment:
 
 ```sh
-docker run -it --rm -p 8888:8888 my-image jupyter notebook --NotebookApp.default_url=/lab/ --ip=0.0.0.0 --port=8888
+docker run -it --rm -p 8888:8888 my-image jupyter lab --NotebookApp.default_url=/lab/ --ip=0.0.0.0 --port=8888
 ```
 
 By default, the home directory is populated with the ESPResSo tutorials in
