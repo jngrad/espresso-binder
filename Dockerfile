@@ -1,8 +1,10 @@
-FROM jngrad/espresso:4.2.0
+FROM jngrad/espresso:summer_school_2022
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
     pip install --no-cache notebook jupyterlab
+
+RUN apt-get update && apt-get install -y --no-install-recommends g++
 
 # create user with a home directory
 ARG NB_USER=user
@@ -19,7 +21,7 @@ WORKDIR ${HOME}
 COPY plugin.jupyterlab-settings ${HOME}/.jupyter/lab/user-settings/\@jupyterlab/docmanager-extension/plugin.jupyterlab-settings
 RUN chown -R ${NB_UID} ${HOME}
 USER ${USER}
-RUN pip install --no-cache --user numpy scipy matplotlib pint tqdm --constraint /app/requirements.txt && \
+RUN pip install --no-cache --user numpy scipy matplotlib pint tqdm "sympy==1.10" "mpmath==1.1.0" "appdirs==1.4.3" "joblib==1.2.0" ipywidgets --constraint /app/requirements.txt && \
     mkdir tutorials && \
     cp -r /app/tutorials tutorials/exercises && \
     mv tutorials/exercises/importlib_wrapper.py tutorials/exercises/convert.py tutorials/exercises/Readme.md tutorials/ && \
