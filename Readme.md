@@ -1,13 +1,13 @@
 # Minimal Dockerfiles for ESPResSo and Binder
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)
 
 Setup a JupyterLab environment to run ESPResSo on the Binder platform.
 
 Paste this repository url in https://mybinder.org to start using ESPResSo in the
-cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/HEAD)).
+cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)).
 
-Uses ESPResSo 4.2-dev built with the default configuration and no dependencies.
+Uses ESPResSo devel built with the default configuration and no dependencies.
 
 ## Developer's guide
 
@@ -21,14 +21,14 @@ Please refer to the following chapters in online user guides:
 
 ### Build an image containing ESPResSo
 
-[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso?style=social)](https://hub.docker.com/r/jngrad/espresso)
+[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/devel?style=social)](https://hub.docker.com/r/jngrad/espresso)
 
 Build the base image containing the ESPResSo shared objects:
 
 ```sh
-docker build --tag jngrad/espresso:4.2.0 -f Dockerfile-espresso .
+docker build --tag jngrad/espresso:devel -f Dockerfile-espresso .
 docker login
-docker push jngrad/espresso:4.2.0
+docker push jngrad/espresso:devel
 docker logout
 ```
 
@@ -52,7 +52,8 @@ Test the ESPResSo binaries by running the testsuite:
 
 ```sh
 docker run --user espresso -it my-image bash
-cp -r /app/testsuite .
+mkdir testsuite
+tar xfz /app/testsuite.tar.gz --strip-components=1 --directory=testsuite
 cd testsuite
 sed -i 's/def test_script/def _skip_script/' h5md.py
 time bash -e suite.sh
