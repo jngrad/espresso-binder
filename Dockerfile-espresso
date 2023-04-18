@@ -35,7 +35,7 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 
 RUN cd /tmp \
 && git config --global advice.detachedHead false \
-&& git clone --depth=1 --recursive -b 4.2.0 https://github.com/espressomd/espresso.git \
+&& git clone --depth=1 --recursive -b 4.2.1 https://github.com/espressomd/espresso.git \
 && cd espresso \
 && mkdir build \
 && cd build \

@@ -1,13 +1,13 @@
 # Minimal Dockerfiles for ESPResSo and Binder
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/4.2.0)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/4.2.1)
 
 Setup a JupyterLab environment to run ESPResSo on the Binder platform.
 
 Paste this repository url in https://mybinder.org to start using ESPResSo in the
-cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/4.2.0)).
+cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/4.2.1)).
 
-Uses ESPResSo 4.2.0 built with the default configuration and no dependencies.
+Uses ESPResSo 4.2.1 built with the default configuration and no dependencies.
 
 ## Developer's guide
 
@@ -16,19 +16,19 @@ Please refer to the following chapters in online user guides:
 - Docker user guide: [Use multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/)
 - Binder user guide: [Use a Dockerfile for your Binder repository](https://mybinder.readthedocs.io/en/latest/tutorials/dockerfile.html)
 - Binder user guide: [binder-examples/minimal-dockerfile](https://github.com/binder-examples/minimal-dockerfile)
-- ESPResSo user guide: [Installing requirements on Ubuntu Linux](https://espressomd.github.io/doc4.2.0/installation.html#installing-requirements-on-ubuntu-linux)
-- ESPResSo user guide: [Interactive notebooks](https://espressomd.github.io/doc4.2.0/running.html#interactive-notebooks)
+- ESPResSo user guide: [Installing requirements on Ubuntu Linux](https://espressomd.github.io/doc4.2.1/installation.html#installing-requirements-on-ubuntu-linux)
+- ESPResSo user guide: [Interactive notebooks](https://espressomd.github.io/doc4.2.1/running.html#interactive-notebooks)
 
 ### Build an image containing ESPResSo
 
-[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/4.2.0?style=social)](https://hub.docker.com/r/jngrad/espresso)
+[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/4.2.1?style=social)](https://hub.docker.com/r/jngrad/espresso)
 
 Build the base image containing the ESPResSo shared objects:
 
 ```sh
-docker build --tag jngrad/espresso:4.2.0 -f Dockerfile-espresso .
+docker build --tag jngrad/espresso:4.2.1 -f Dockerfile-espresso .
 docker login
-docker push jngrad/espresso:4.2.0
+docker push jngrad/espresso:4.2.1
 docker logout
 ```
 

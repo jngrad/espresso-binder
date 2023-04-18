@@ -1,4 +1,4 @@
-FROM jngrad/espresso:4.2.0
+FROM jngrad/espresso:4.2.1
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
