@@ -12,11 +12,13 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-103" >> /tmp/pkgs-run; fi \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "python3-h5py" >> /tmp/pkgs-dev; fi \
 && sed -i 's/ main/ main contrib/g' /etc/apt/sources.list \
+&& echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list \
 && apt-get update \
-&& apt-get install -y --no-install-recommends \
+&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --target-release bullseye-backports \
+    cmake \
+&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     apt-utils \
     build-essential \
-    cmake \
     cython3 \
     git \
     libboost-dev libboost-serialization-dev libboost-mpi-dev libboost-filesystem-dev libboost-test-dev \
@@ -40,9 +42,16 @@ RUN cd /tmp \
 && mkdir build \
 && cd build \
 && LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" cmake .. \
-  -D CMAKE_BUILD_TYPE=Release -D CMAKE_SKIP_RPATH=ON \
-  -D INSTALL_PYPRESSO=OFF -D WITH_CUDA="${WITH_CUDA}" -D WITH_STOKESIAN_DYNAMICS=OFF -D WITH_SCAFACOS=OFF \
-  -D WITH_CCACHE=OFF -D WITH_HDF5="${WITH_HDF5}" -D MPIEXEC_PREFLAGS='--mca;btl_vader_single_copy_mechanism;none' \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_SKIP_RPATH=ON \
+  -D INSTALL_PYPRESSO=OFF \
+  -D ESPRESSO_BUILD_WITH_CUDA="${WITH_CUDA}" \
+  -D ESPRESSO_BUILD_WITH_STOKESIAN_DYNAMICS=OFF \
+  -D ESPRESSO_BUILD_WITH_WALBERLA=ON \
+  -D ESPRESSO_BUILD_WITH_SCAFACOS=OFF \
+  -D ESPRESSO_BUILD_WITH_CCACHE=OFF \
+  -D ESPRESSO_BUILD_WITH_HDF5="${WITH_HDF5}" \
+  -D MPIEXEC_PREFLAGS='--mca;btl_vader_single_copy_mechanism;none' \
 && LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) \
 && LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) install \
 && make -j $(nproc) tutorials \
