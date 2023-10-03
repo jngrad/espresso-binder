@@ -37,8 +37,9 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 
 RUN cd /tmp \
 && git config --global advice.detachedHead false \
-&& git clone --depth=1 --recursive -b python https://github.com/espressomd/espresso.git \
+&& git clone --depth=100 --recursive -b python https://github.com/espressomd/espresso.git \
 && cd espresso \
+&& git checkout -b summer_school_2023 a931825acf3bde11432b51df3c241bc57597f2e6 \
 && mkdir build \
 && cd build \
 && LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" cmake .. \

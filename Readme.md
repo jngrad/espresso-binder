@@ -1,13 +1,13 @@
 # Minimal Dockerfiles for ESPResSo and Binder
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/summer_school_2023)
 
 Setup a JupyterLab environment to run ESPResSo on the Binder platform.
 
 Paste this repository url in https://mybinder.org to start using ESPResSo in the
-cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)).
+cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/summer_school_2023)).
 
-Uses ESPResSo devel built with the default configuration and no dependencies.
+Uses ESPResSo 4.3-dev built with the default configuration and no dependencies.
 
 ## Developer's guide
 
@@ -21,14 +21,14 @@ Please refer to the following chapters in online user guides:
 
 ### Build an image containing ESPResSo
 
-[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/devel?style=social)](https://hub.docker.com/r/jngrad/espresso)
+[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/summer_school_2023?style=social)](https://hub.docker.com/r/jngrad/espresso)
 
 Build the base image containing the ESPResSo shared objects:
 
 ```sh
-docker build --tag jngrad/espresso:devel -f Dockerfile-espresso .
+docker build --tag jngrad/espresso:summer_school_2023 -f Dockerfile-espresso .
 docker login
-docker push jngrad/espresso:devel
+docker push jngrad/espresso:summer_school_2023
 docker logout
 ```
 

@@ -1,4 +1,4 @@
-FROM jngrad/espresso:devel
+FROM jngrad/espresso:summer_school_2023
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 # install the notebook package
 RUN pip install --no-cache --upgrade pip && \
