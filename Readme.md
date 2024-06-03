@@ -76,25 +76,25 @@ Check image sizes:
 ```sh
 docker image ls
 ```
-
 ```
-REPOSITORY        TAG                 IMAGE ID       CREATED         SIZE
-my-image          latest              6d0774d00d40   36 minutes ago  1.08GB
-jngrad/espresso   f4d09d96            4fb311cfb577   42 minutes ago  611MB
+REPOSITORY        TAG                  IMAGE ID       CREATED          SIZE
+my-image          latest               4c63b76bf638   15 minutes ago   1.21GB
+jngrad/espresso   devel                349dc281ee26   24 minutes ago   720MB
+python            3.11-slim-bookworm   26820c29e666   2 months ago     131MB
 ```
 
 Show installed packages:
 
 ```sh
 apt list --installed
-du -hc .local/lib/python3.9/site-packages/ | sort -h
+du -h -d 1 .local/lib/python3.11/site-packages/ | sort -h
 ```
 
 Show runner technical information:
 
 ```sh
-$ echo "CPU limit: ${CPU_LIMIT}"
-$ echo "RAM limit: $((MEM_LIMIT / 1024 / 1024)) MiB"
+echo "CPU limit: ${CPU_LIMIT}"
+echo "RAM limit: $((MEM_LIMIT / 1024 / 1024)) MiB"
 ```
 ```
 CPU limit: 1.0

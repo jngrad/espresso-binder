@@ -1,5 +1,5 @@
-FROM python:3.9-slim-bullseye as build
-ENV PYTHON3_SITEARCH="/usr/local/lib/python3.9/site-packages"
+FROM python:3.11-slim-bookworm as build
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.11/site-packages"
 ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 ARG WITH_CUDA=OFF
@@ -11,12 +11,10 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-dev" >> /tmp/pkgs-dev; fi \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-103" >> /tmp/pkgs-run; fi \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "python3-h5py" >> /tmp/pkgs-dev; fi \
-&& sed -i 's/ main/ main contrib/g' /etc/apt/sources.list \
-&& echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list \
+&& sed -i 's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources \
 && apt-get update \
-&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --target-release bullseye-backports \
-    cmake \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    cmake \
     apt-utils \
     build-essential \
     cython3 \
@@ -30,7 +28,6 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
     python3-scipy \
     python3-pip \
     python3-setuptools \
-    python3-vtk7 \
 && apt-get install -y --no-install-recommends $(cat /tmp/pkgs-dev) \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/pkgs-dev
@@ -66,8 +63,8 @@ RUN cd /tmp/espresso/build \
 && tar cfz testsuite.tar.gz --directory=testsuite python \
 && tar cfz samples.tar.gz --directory=.. samples
 
-FROM python:3.9-slim-bullseye as main
-ENV PYTHON3_SITEARCH="/usr/local/lib/python3.9/site-packages"
+FROM python:3.11-slim-bookworm as main
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.11/site-packages"
 ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 COPY --from=build /tmp/pkgs-run /tmp/pkgs-run
@@ -78,7 +75,7 @@ COPY --from=build /tmp/espresso/build/testsuite.tar.gz /app/testsuite.tar.gz
 COPY --from=build /tmp/espresso/testsuite/scripts/importlib_wrapper.py /app/importlib_wrapper.py
 COPY --from=build ${PYTHON3_SITEARCH}/espressomd ${PYTHON3_SITEARCH}/espressomd
 COPY --from=build ${PYTHON3_SITEARCH}/object_in_fluid ${PYTHON3_SITEARCH}/object_in_fluid
-RUN sed -i 's/ main/ main contrib/g' /etc/apt/sources.list \
+RUN sed -i 's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources \
 && apt-get update \
 && apt-get install -y --no-install-recommends \
     ffmpeg \
