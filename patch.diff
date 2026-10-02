@@ -1,0 +1,20 @@
+--- a/espressomd/zn.py
++++ b/espressomd/zn.py
+@@ -251,3 +251,3 @@
+         # Check that the server is up
+-        request_deadline = time.monotonic() + 30
++        request_deadline = time.monotonic() + 15
+         while time.monotonic() < request_deadline:
+@@ -261,5 +261,2 @@
+             time.sleep(0.5)
+-        else:
+-            raise RuntimeError(
+-                "ZnDraw server did not start within the expected time")
+ 
+@@ -298,3 +295,5 @@
+         """
+-        url = f"{self.url}:{self.SERVER_PORT}"
++        import os
++        prefix = os.environ.get("JUPYTERHUB_SERVICE_PREFIX", "/")
++        url = f"{prefix}/{self.SERVER_PORT}/"
+         self.zndraw = zndraw.ZnDraw(url=url, room=self.token)
