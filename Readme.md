@@ -1,11 +1,11 @@
 # Minimal Dockerfiles for ESPResSo and Binder
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jngrad/espresso-binder/summer_school_2026)
 
 Setup a JupyterLab environment to run ESPResSo on the Binder platform.
 
 Paste this repository url in https://mybinder.org to start using ESPResSo in the
-cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/main)).
+cloud ([direct link](https://mybinder.org/v2/gh/jngrad/espresso-binder/summer_school_2026)).
 
 Uses ESPResSo devel built with the default configuration and no dependencies.
 
@@ -21,14 +21,14 @@ Please refer to the following chapters in online user guides:
 
 ### Build an image containing ESPResSo
 
-[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/devel?style=social)](https://hub.docker.com/r/jngrad/espresso)
+[![Docker Image Size](https://img.shields.io/docker/image-size/jngrad/espresso/summer_school_2026?style=social)](https://hub.docker.com/r/jngrad/espresso)
 
 Build the base image containing the ESPResSo shared objects:
 
 ```sh
-docker build --tag jngrad/espresso:devel -f Dockerfile-espresso .
+docker build --tag jngrad/espresso:summer_school_2026 -f Dockerfile-espresso .
 docker login
-docker push jngrad/espresso:devel
+docker push jngrad/espresso:summer_school_2026
 docker logout
 ```
 
@@ -77,17 +77,9 @@ Check image sizes:
 docker image ls
 ```
 ```
-REPOSITORY        TAG                  IMAGE ID       CREATED          SIZE
-my-image          latest               4c63b76bf638   15 minutes ago   1.21GB
-jngrad/espresso   devel                349dc281ee26   24 minutes ago   720MB
-python            3.11-slim-bookworm   26820c29e666   2 months ago     131MB
-```
-
-Show installed packages:
-
-```sh
-apt list --installed
-du -h -d 1 .local/lib/python3.11/site-packages/ | sort -h
+IMAGE                                ID             DISK USAGE
+my-image:latest                      4250c77fa592       1.81GB
+jngrad/espresso:summer_school_2026   bbda9da82043        887MB
 ```
 
 Show runner technical information:

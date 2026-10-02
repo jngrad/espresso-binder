@@ -1,5 +1,5 @@
-FROM python:3.11-slim-bookworm as build
-ENV PYTHON3_SITEARCH="/usr/local/lib/python3.11/site-packages"
+FROM debian:trixie-slim AS build
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.13/site-packages"
 ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 ARG WITH_CUDA=OFF
@@ -9,25 +9,34 @@ RUN echo "" > /tmp/pkgs-dev && echo "" > /tmp/pkgs-run \
 && if [ "${WITH_CUDA}" = "ON" ]; then echo "nvidia-cuda-toolkit" >> /tmp/pkgs-run; fi \
 && if [ "${WITH_CUDA}" = "ON" ]; then echo "nvidia-smi" >> /tmp/pkgs-run; fi \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-dev" >> /tmp/pkgs-dev; fi \
-&& if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-103" >> /tmp/pkgs-run; fi \
+&& if [ "${WITH_HDF5}" = "ON" ]; then echo "libhdf5-openmpi-310" >> /tmp/pkgs-run; fi \
 && if [ "${WITH_HDF5}" = "ON" ]; then echo "python3-h5py" >> /tmp/pkgs-dev; fi \
 && sed -i 's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources \
 && apt-get update \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    cmake \
     apt-utils \
     build-essential \
+    cmake \
     cython3 \
+    dpkg-dev \
+    g++ \
+    gcc \
     git \
-    libboost-dev libboost-serialization-dev libboost-mpi-dev libboost-filesystem-dev libboost-test-dev \
+    libboost-dev libboost-serialization-dev libboost-mpi-dev libboost-test-dev \
     libfftw3-dev \
     libpython3-dev \
+    ninja-build \
     openmpi-bin \
     python3 \
+    python3-jinja2 \
+    python3-lxml \
+    python3-matplotlib \
+    python3-nbconvert \
     python3-numpy \
-    python3-scipy \
+    python3-packaging \
     python3-pip \
     python3-setuptools \
+    python3-scipy \
 && apt-get install -y --no-install-recommends $(cat /tmp/pkgs-dev) \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/pkgs-dev
@@ -39,9 +48,10 @@ RUN cd /tmp \
 && mkdir build \
 && cd build \
 && LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" cmake .. \
+  -G Ninja \
   -D CMAKE_BUILD_TYPE=Release \
   -D CMAKE_SKIP_RPATH=ON \
-  -D INSTALL_PYPRESSO=OFF \
+  -D ESPRESSO_INSTALL_PYPRESSO=OFF \
   -D ESPRESSO_BUILD_WITH_CUDA="${WITH_CUDA}" \
   -D ESPRESSO_BUILD_WITH_STOKESIAN_DYNAMICS=OFF \
   -D ESPRESSO_BUILD_WITH_WALBERLA=ON \
@@ -49,22 +59,22 @@ RUN cd /tmp \
   -D ESPRESSO_BUILD_WITH_CCACHE=OFF \
   -D ESPRESSO_BUILD_WITH_HDF5="${WITH_HDF5}" \
   -D MPIEXEC_PREFLAGS='--mca;btl_vader_single_copy_mechanism;none' \
-&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) \
-&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" make -j $(nproc) install \
-&& make -j $(nproc) tutorials \
-&& make python_test_data
+&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" ninja -j $(nproc) \
+&& LDFLAGS="${LDFLAGS} -Wl,-rpath,${PYTHON3_SITEARCH}/espressomd" ninja -j $(nproc) install \
+&& ninja -j $(nproc) tutorials \
+&& ninja python_test_data
 
 RUN cd /tmp/espresso/build \
 && cp -r src/python/object_in_fluid ${PYTHON3_SITEARCH}/object_in_fluid \
 && grep -F 'add_test(' testsuite/python/CTestTestfile.cmake | sed -r 's/^add_test\([^ ]+ (.+)\)$/\1/; s|[^"]+/build/testsuite/python/||g; s|[^"]+/pypresso|python|g;' > testsuite/python/suite.sh \
-&& bash -c "rm -r doc/tutorials/{,*/}{CMakeFiles,CTestTestfile.cmake,Makefile,cmake_install.cmake}" \
-&& bash -c "rm -r testsuite/python/{CMakeFiles,CTestTestfile.cmake,Makefile,cmake_install.cmake}" \
+&& bash -c "rm -r doc/tutorials/{,*/}{CMakeFiles,CTestTestfile.cmake,cmake_install.cmake}" \
+&& bash -c "rm -r testsuite/python/{CMakeFiles,CTestTestfile.cmake,cmake_install.cmake}" \
 && tar cfz tutorials.tar.gz --directory=doc tutorials \
 && tar cfz testsuite.tar.gz --directory=testsuite python \
 && tar cfz samples.tar.gz --directory=.. samples
 
-FROM python:3.11-slim-bookworm as main
-ENV PYTHON3_SITEARCH="/usr/local/lib/python3.11/site-packages"
+FROM debian:trixie-slim AS main
+ENV PYTHON3_SITEARCH="/usr/local/lib/python3.13/site-packages"
 ENV PYTHON3_DISTARCH="/usr/lib/python3/dist-packages"
 ENV PYTHONPATH="${PYTHON3_SITEARCH}:${PYTHON3_DISTARCH}"
 COPY --from=build /tmp/pkgs-run /tmp/pkgs-run
@@ -72,18 +82,19 @@ COPY --from=build /tmp/espresso/requirements.txt /app/requirements.txt
 COPY --from=build /tmp/espresso/build/samples.tar.gz /app/samples.tar.gz
 COPY --from=build /tmp/espresso/build/tutorials.tar.gz /app/tutorials.tar.gz
 COPY --from=build /tmp/espresso/build/testsuite.tar.gz /app/testsuite.tar.gz
-COPY --from=build /tmp/espresso/testsuite/scripts/importlib_wrapper.py /app/importlib_wrapper.py
+COPY --from=build /tmp/espresso/maintainer/parsing/importlib_wrapper.py /app/importlib_wrapper.py
 COPY --from=build ${PYTHON3_SITEARCH}/espressomd ${PYTHON3_SITEARCH}/espressomd
 COPY --from=build ${PYTHON3_SITEARCH}/object_in_fluid ${PYTHON3_SITEARCH}/object_in_fluid
 RUN sed -i 's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources \
 && apt-get update \
 && apt-get install -y --no-install-recommends \
     ffmpeg \
-    libboost-system1.74.0 libboost-filesystem1.74.0 libboost-mpi1.74.0 libboost-serialization1.74.0 \
+    libboost-mpi1.83.0 libboost-serialization1.83.0 \
     libfftw3-bin \
     openmpi-bin \
     python3 \
     python3-pip \
+    python3-venv \
     curl \
 && apt-get install -y --no-install-recommends $(cat /tmp/pkgs-run) \
 && apt autoremove -y \
